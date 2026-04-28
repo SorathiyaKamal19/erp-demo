@@ -1,3 +1,5 @@
+# 📦 Sales Order Management App (React + Vite)
+
 A minimal yet powerful **ERP-style Sales Order Form** built using React (Vite).
 This application allows users to create, edit, and manage sales orders with dynamic product handling, validation, and local storage persistence.
 
@@ -96,17 +98,34 @@ src/
 
 ## ⚙️ Installation & Setup
 
+### 🔹 1. Clone from GitHub
+
 ```bash
-# Create project
-npm create vite@latest 
+git clone https://github.com/your-username/sales-order-app.git
+cd sales-order-app
+```
 
-# Install dependencies
+---
+
+### 🔹 2. Install Dependencies
+
+```bash
 npm install
+```
 
-# Install toast library
+---
+
+### 🔹 3. Install Toast Library
+
+```bash
 npm install react-toastify
+```
 
-# Run project
+---
+
+### 🔹 4. Run the Project
+
+```bash
 npm run dev
 ```
 

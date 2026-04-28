@@ -1,4 +1,4 @@
-// src/components/OrderSummary.jsx
+import React from "react";
 
 const OrderSummary = ({ total }) => {
   return (
