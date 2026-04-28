@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import{ useEffect, useMemo, useState } from "react";
 import CustomerSelect from "./components/CustomerSelect";
 import ProductTable from "./components/ProductTable";
 import { getCustomers, getProducts } from "./services/api";

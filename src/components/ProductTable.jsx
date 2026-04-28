@@ -1,3 +1,4 @@
+import React from "react";
 import { FiPlus } from "react-icons/fi";
 import ProductRow from "./ProductRow";
 import {Table} from "react-bootstrap"

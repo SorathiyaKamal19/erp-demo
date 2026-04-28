@@ -1,5 +1,4 @@
-// src/components/CustomerSelect.jsx
-
+import React from "react";
 const CustomerSelect = ({ customers, value, onChange }) => {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}>
