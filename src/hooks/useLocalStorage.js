@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 export const useLocalStorage = (key, initialValue) => {
   const [value, setValue] = useState(initialValue);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     try {
@@ -9,18 +10,18 @@ export const useLocalStorage = (key, initialValue) => {
       if (saved !== null) {
         setValue(JSON.parse(saved));
       }
-    } catch (error) {
-      console.error("Error reading localStorage:", error);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoaded(true);
     }
   }, [key]);
 
   useEffect(() => {
-    try {
+    if (isLoaded) {
       localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      console.error("Error writing localStorage:", error);
     }
-  }, [key, value]);
+  }, [key, value, isLoaded]);
 
-  return [value, setValue];
+  return [value, setValue, isLoaded];
 };
