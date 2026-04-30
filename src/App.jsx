@@ -1,4 +1,4 @@
-import{ useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CustomerSelect from "./components/CustomerSelect";
 import ProductTable from "./components/ProductTable";
 import { getCustomers, getProducts } from "./services/api";
@@ -18,211 +18,216 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [savedOrder, setSavedOrder] = useState(null);
   const [isDirty, setIsDirty] = useState(false);
+  // ✅ 1. API call effect
   useEffect(() => {
     getCustomers().then(setCustomers);
     getProducts().then(setProducts);
 
-    useEffect(() => {
-      const isChanged =
-        customerId !== "" ||
-        rows.some(
-          (r) =>
-            r.productId !== "" ||
-            r.qty !== 1 ||
-            r.price !== 0 ||
-            r.total !== 0
-        );
-
-      setIsDirty(isChanged);
-    }, [customerId, rows]);
-
-    useEffect(() => {
-      const handleBeforeUnload = (e) => {
-        if (isDirty) {
-          e.preventDefault();
-          e.returnValue = "";
-        }
-      };
-
-      window.addEventListener("beforeunload", handleBeforeUnload);
-
-      return () =>
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-    }, [isDirty]);
     const saved = JSON.parse(localStorage.getItem("savedOrder"));
     if (saved) setSavedOrder(saved);
   }, []);
 
-  const grandTotal = useMemo(() => {
-    return rows.reduce((sum, r) => sum + r.total, 0);
-  }, [rows]);
-
-  const isValid = () => {
-    if (!customerId) return false;
-    return rows.every((r) => r.productId && r.qty > 0);
-  };
-
-
-  const handleSubmitClick = () => {
-    if (!isValid()) {
-      toast.error("Please fill all required fields correctly!");
-      return;
-    }
-
-    handleSubmit();
-  };
-
-  // ✅ Submit / Update Order
-  const handleSubmit = () => {
-    try {
-      const order = {
-        customerId,
-        rows,
-        total: grandTotal,
-      };
-
-      localStorage.setItem("savedOrder", JSON.stringify(order));
-      setSavedOrder(order);
-
-      // ✅ Toast
-      toast.success(
-        isEditing
-          ? "Order Updated Successfully!"
-          : "Order Saved Successfully!"
+  // ✅ 2. Dirty state effect
+  useEffect(() => {
+    const isChanged =
+      customerId !== "" ||
+      rows.some(
+        (r) =>
+          r.productId !== "" ||
+          r.qty !== 1 ||
+          r.price !== 0 ||
+          r.total !== 0
       );
 
-      // ✅ RESET FORM
-      setCustomerId("");
-      setRows([{ productId: "", qty: 1, price: 0, total: 0 }]);
-      setIsDirty(false);
-      setIsEditing(false);
-    } catch (error) {
-      toast.error("Something went wrong!");
-    }
-  };
+    setIsDirty(isChanged);
+  }, [customerId, rows]);
 
-  // ✅ Load Order for Editing
-  const loadOrder = () => {
-    if (!savedOrder) return;
+  // ✅ 3. Before unload effect
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
 
-    setCustomerId(savedOrder.customerId);
-    setRows(savedOrder.rows);
-    setIsEditing(true);
-  };
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
-  const cancelEdit = () => {
-    if (isDirty) {
-      const confirmLeave = window.confirm(
-        "You have unsaved changes. Are you sure?"
-      );
-      if (!confirmLeave) return;
-    }
+    return () =>
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
+
+const grandTotal = useMemo(() => {
+  return rows.reduce((sum, r) => sum + r.total, 0);
+}, [rows]);
+
+const isValid = () => {
+  if (!customerId) return false;
+  return rows.every((r) => r.productId && r.qty > 0);
+};
+
+
+const handleSubmitClick = () => {
+  if (!isValid()) {
+    toast.error("Please fill all required fields correctly!");
+    return;
+  }
+
+  handleSubmit();
+};
+
+// ✅ Submit / Update Order
+const handleSubmit = () => {
+  try {
+    const order = {
+      customerId,
+      rows,
+      total: grandTotal,
+    };
+
+    localStorage.setItem("savedOrder", JSON.stringify(order));
+    setSavedOrder(order);
+
+    // ✅ Toast
+    toast.success(
+      isEditing
+        ? "Order Updated Successfully!"
+        : "Order Saved Successfully!"
+    );
+
+    // ✅ RESET FORM
     setCustomerId("");
     setRows([{ productId: "", qty: 1, price: 0, total: 0 }]);
     setIsDirty(false);
     setIsEditing(false);
-  };
+  } catch (error) {
+    toast.error("Something went wrong!");
+  }
+};
 
-  return (
-    <>
-      <ToastContainer position="top-right" autoClose={2000} />
-      <div className="container">
-        {/* FORM */}
-        <div className="card">
-          <div className="title">
-            {isEditing ? "Edit Sales Order" : "Sales Order"}
-          </div>
+// ✅ Load Order for Editing
+const loadOrder = () => {
+  if (!savedOrder) return;
 
-          <CustomerSelect
-            customers={customers}
-            value={customerId}
-            onChange={setCustomerId}
-          />
+  setCustomerId(savedOrder.customerId);
+  setRows(savedOrder.rows);
+  setIsEditing(true);
+};
 
-          <ProductTable
-            rows={rows}
-            products={products}
-            setRows={setRows}
-          />
+const cancelEdit = () => {
+  if (isDirty) {
+    const confirmLeave = window.confirm(
+      "You have unsaved changes. Are you sure?"
+    );
+    if (!confirmLeave) return;
+  }
 
-          <div className="total">Grand Total: ₹ {grandTotal}</div>
+  setCustomerId("");
+  setRows([{ productId: "", qty: 1, price: 0, total: 0 }]);
+  setIsDirty(false);
+  setIsEditing(false);
+};
 
-          <div style={{ marginTop: "15px" }}>
-            <button
-              className="btn btn-primary"
-              onClick={handleSubmitClick}
-            >
-              {isEditing ? "Update Order" : "Submit Order"}
-            </button>
-
-            {isEditing && (
-              <button
-                className="btn btn-danger"
-                onClick={cancelEdit}
-                style={{ marginLeft: "10px" }}
-              >
-                Cancel
-              </button>
-            )}
-          </div>
+return (
+  <>
+    <ToastContainer position="top-right" autoClose={2000} />
+    <div className="container">
+      {/* FORM */}
+      <div className="card">
+        <div className="title">
+          {isEditing ? "Edit Sales Order" : "Sales Order"}
         </div>
 
-        {/* SAVED ORDER VIEW */}
-        {/* SAVED ORDER VIEW */}
-        {savedOrder && !isEditing && (
-          <div className="card" style={{ marginTop: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3>📦 Saved Order</h3>
-              <button className="btn btn-primary" onClick={loadOrder}>
-                Edit
-              </button>
-            </div>
+        <CustomerSelect
+          customers={customers}
+          value={customerId}
+          onChange={setCustomerId}
+        />
 
-            <hr style={{ margin: "10px 0" }} />
+        <ProductTable
+          rows={rows}
+          products={products}
+          setRows={setRows}
+        />
 
-            {/* Customer */}
-            <p>
-              <b>Customer:</b>{" "}
-              {customers.find(c => c.id == savedOrder.customerId)?.name || "N/A"}
-            </p>
+        <div className="total">Grand Total: ₹ {grandTotal}</div>
 
-            {/* Products Table */}
-            <table className="table" style={{ marginTop: "10px" }}>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Qty</th>
-                  <th>Price</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
+        <div style={{ marginTop: "15px" }}>
+          <button
+            className="btn btn-primary"
+            onClick={handleSubmitClick}
+          >
+            {isEditing ? "Update Order" : "Submit Order"}
+          </button>
 
-              <tbody>
-                {savedOrder.rows.map((item, index) => {
-                  const product = products.find(p => p.id == item.productId);
-
-                  return (
-                    <tr key={index}>
-                      <td>{product?.name || "N/A"}</td>
-                      <td>{item.qty}</td>
-                      <td>₹ {item.price}</td>
-                      <td>₹ {item.total}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {/* Grand Total */}
-            <div className="total" style={{ marginTop: "10px" }}>
-              Grand Total: ₹ {savedOrder.total}
-            </div>
-          </div>
-        )}
+          {isEditing && (
+            <button
+              className="btn btn-danger"
+              onClick={cancelEdit}
+              style={{ marginLeft: "10px" }}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
-    </>
-  );
+
+      {/* SAVED ORDER VIEW */}
+      {/* SAVED ORDER VIEW */}
+      {savedOrder && !isEditing && (
+        <div className="card" style={{ marginTop: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h3>📦 Saved Order</h3>
+            <button className="btn btn-primary" onClick={loadOrder}>
+              Edit
+            </button>
+          </div>
+
+          <hr style={{ margin: "10px 0" }} />
+
+          {/* Customer */}
+          <p>
+            <b>Customer:</b>{" "}
+            {customers.find(c => c.id == savedOrder.customerId)?.name || "N/A"}
+          </p>
+
+          {/* Products Table */}
+          <table className="table" style={{ marginTop: "10px" }}>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {savedOrder.rows.map((item, index) => {
+                const product = products.find(p => p.id == item.productId);
+
+                return (
+                  <tr key={index}>
+                    <td>{product?.name || "N/A"}</td>
+                    <td>{item.qty}</td>
+                    <td>₹ {item.price}</td>
+                    <td>₹ {item.total}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* Grand Total */}
+          <div className="total" style={{ marginTop: "10px" }}>
+            Grand Total: ₹ {savedOrder.total}
+          </div>
+        </div>
+      )}
+    </div>
+  </>
+);
 }
 
 export default App;
